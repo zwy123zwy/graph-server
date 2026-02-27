@@ -1,0 +1,23 @@
+{
+  "name": "langgraph-ollama-app",
+  "version": "1.0.0",
+  "description": "LangGraph 本地服务器，使用 Ollama qwen3-coder:480b-cloud",
+  "type": "module",
+  "main": "dist/agent.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "langgraphjs dev",
+    "stop": "node scripts/stop-port.mjs 2024",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.42",
+    "@langchain/langgraph": "^0.2.57",
+    "@langchain/ollama": "^0.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@langchain/langgraph-cli": "latest",
+    "typescript": "^5.7.2"
+  }
+}

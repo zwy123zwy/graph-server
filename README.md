@@ -1,0 +1,115 @@
+# LangGraph 本地服务器（TypeScript + Ollama）
+
+基于 [LangChain 中文文档 - 运行本地服务器](https://langchain-doc.cn/v1/python/langgraph/local-server.html) 创建的 TypeScript 版 LangGraph 应用，大模型使用本地 **Ollama** 的 **qwen3-coder:480b-cloud**。
+
+## 先决条件
+
+- **Node.js** >= 20
+- 已安装并运行 **Ollama**，且已拉取模型：
+  ```bash
+  ollama pull qwen3-coder:480b-cloud
+  ```
+
+## 1. 安装依赖
+
+```bash
+npm install
+```
+
+## 2. 环境变量
+
+**启动本地服务器前** 需要存在 `.env` 文件（可为空）。首次可复制示例：
+
+```bash
+copy .env.example .env
+```
+
+如需 LangSmith 追踪，在 `.env` 中设置 `LANGSMITH_API_KEY`。
+
+## 3. 启动本地服务器
+
+```bash
+npx @langchain/langgraph-cli dev
+```
+
+或使用脚本：
+
+```bash
+npm run dev
+```
+
+示例输出：
+
+```
+Ready!
+- API: http://localhost:2024
+- Docs: http://localhost:2024/docs
+- LangGraph Studio Web UI: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
+```
+
+## 4. 在 Studio 中测试
+
+打开上述输出中的 **LangGraph Studio Web UI** 链接，即可在浏览器中可视化和调试图。
+
+## 5. 调用 API 示例
+
+**JavaScript SDK：**
+
+```bash
+npm install @langchain/langgraph-sdk
+```
+
+```js
+const { Client } = await import("@langchain/langgraph-sdk");
+
+const client = new Client({ apiUrl: "http://localhost:2024" });
+
+const streamResponse = client.runs.stream(
+  null,
+  "agent",
+  {
+    input: {
+      messages: [{ role: "user", content: "什么是 LangGraph？" }],
+    },
+    streamMode: "messages-tuple",
+  }
+);
+
+for await (const chunk of streamResponse) {
+  console.log(`事件: ${chunk.event}`, chunk.data);
+}
+```
+
+**REST API：**
+
+```bash
+curl -s -X POST "http://localhost:2024/runs/stream" \
+  -H "Content-Type: application/json" \
+  -d "{\"assistant_id\": \"agent\", \"input\": {\"messages\": [{\"role\": \"human\", \"content\": \"什么是 LangGraph？\"}]}, \"stream_mode\": \"messages-tuple\"}"
+```
+
+## 项目结构
+
+```
+graph/
+├── src/
+│   └── agent.ts    # 图定义，使用 ChatOllama + qwen3-coder:480b-cloud
+├── langgraph.json  # LangGraph 配置
+├── package.json
+├── tsconfig.json
+├── .env.example
+└── README.md
+```
+
+## 修改模型或 Ollama 地址
+
+在 `src/agent.ts` 中调整 `ChatOllama` 的 `model` 和 `baseUrl`：
+
+```ts
+const model = new ChatOllama({
+  model: "qwen3-coder:480b-cloud",
+  baseUrl: "http://127.0.0.1:11434",  // 若 Ollama 在其他主机/端口可修改
+  temperature: 0.7,
+  maxRetries: 2,
+});
+```
