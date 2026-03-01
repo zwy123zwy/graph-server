@@ -93,13 +93,30 @@ curl -s -X POST "http://localhost:2024/runs/stream" \
 ```
 graph/
 ├── src/
-│   └── agent.ts    # 图定义，使用 ChatOllama + qwen3-coder:480b-cloud
-├── langgraph.json  # LangGraph 配置
+│   ├── agent.ts              # 图定义，使用 ChatOllama + 工具
+│   ├── config.ts
+│   ├── examples/
+│   │   ├── hello-graph.ts    # 入门 Hello World
+│   │   ├── streaming-example.ts  # 流式 updates/values
+│   │   └── memory-example.ts # 短期记忆 thread_id + MemorySaver
+│   └── tools/
+│       └── web-search.ts
+├── docs/
+│   ├── langgraph-getting-started.md  # 入门教程
+│   ├── langgraph-docs-index.md       # 官方文档索引
+│   ├── tutorial-streaming.md         # 流式教程
+│   ├── tutorial-memory.md            # 记忆教程
+│   ├── tutorial-graph-api.md         # Graph API 要点
+│   └── tutorial-quickstart.md        # Quickstart 对应
+├── langgraph.json
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
 └── README.md
 ```
+
+**入门**：先看 [LangGraph 入门教程](docs/langgraph-getting-started.md)，运行 `npm run build && node dist/examples/hello-graph.js` 体验最小示例。  
+**更多教程**：流式、记忆、Graph API、Quickstart 对应见 [docs/langgraph-docs-index.md](docs/langgraph-docs-index.md) 中「本项目中对应内容」。
 
 ## 修改模型或 Ollama 地址
 
