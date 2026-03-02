@@ -1,8 +1,9 @@
 /**
  * Agent 图入口：组装工具、模型、节点与边，导出编译后的 graph。
+ * 使用 MemorySaver 做 thread 级持久化：同一 thread_id 下多轮对话会保留历史消息。
  */
 import { ChatOllama } from "@langchain/ollama";
-import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
+import { MemorySaver, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { ollamaConfig } from "../config.js";
 import { webSearchTool } from "../tools/web-search.js";
@@ -82,4 +83,7 @@ const workflow = new StateGraph(MessagesAnnotation)
   .addConditionalEdges("callModel", shouldContinue, ["tools", "__end__"])
   .addEdge("tools", "callModel");
 
-export const graph = workflow.compile();
+/** 进程内 checkpoint 存储，同一 thread_id 会保留对话历史；进程重启后清空。 */
+const checkpointer = new MemorySaver();
+export const graph = workflow.compile({ checkpointer });
+export { functionCallingGraph } from "./function-calling.js";

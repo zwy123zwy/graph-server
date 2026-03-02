@@ -6,8 +6,10 @@ import { MessagesAnnotation } from "@langchain/langgraph";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
+import { pruneUploadsLru } from "../lib/uploads-lru.js";
 
 const UPLOAD_DIR = "uploads";
+const MAX_UPLOAD_FILES = 5;
 
 export async function replacePdfBase64WithPath(
   messages: typeof MessagesAnnotation.State["messages"]
@@ -46,6 +48,7 @@ export async function replacePdfBase64WithPath(
           const name = `${Date.now()}-${randomBytes(4).toString("hex")}.pdf`;
           const savedPath = path.join(dir, name);
           await writeFile(savedPath, buf);
+          await pruneUploadsLru(dir, MAX_UPLOAD_FILES);
           const absolutePath = path.resolve(savedPath);
           newContent.push({
             type: "text",

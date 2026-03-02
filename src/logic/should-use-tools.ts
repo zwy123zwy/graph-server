@@ -24,8 +24,10 @@ export function shouldUseTools(
 
   const lowerText = text.toLowerCase();
 
-  // 1. 用户上传了 PDF 并给出 path → 必须允许 read_pdf
-  if (/【用户上传了 PDF/.test(text) && /path:\s*\//.test(text)) return true;
+  // 1. 用户上传了 PDF 并给出 path/路径（含 Windows 路径 C:\）→ 必须允许 read_pdf
+  const hasPdfHint = /【用户上传了\s*PDF/i.test(text) || /用户上传了\s*PDF\s*文件/.test(text);
+  const hasPath = /\bpath:\s*\S+/.test(text) || /路径[：:]\s*\S+/.test(text) || /path:\s*[A-Za-z]:[\\/]/.test(text);
+  if (hasPdfHint && hasPath) return true;
 
   // 2. 消息里包含网址 → 允许 crawl_url
   if (/https?:\/\/[^\s]+/i.test(text)) return true;

@@ -7,14 +7,15 @@ import { MessagesAnnotation } from "@langchain/langgraph";
 import { replacePdfBase64WithPath } from "./pdf-replace.js";
 import { normalizeMessages } from "./normalize.js";
 import { shouldUseTools } from "./should-use-tools.js";
-import { getSystemPrompt } from "./system-prompt.js";
+import { getSystemPrompt, type AgentPromptOverrides } from "./system-prompt.js";
 
 export type ModelWithTools = { invoke: (input: unknown) => Promise<unknown> };
 
-/** 执行一轮模型调用：预处理、invoke、后处理（工具过滤、占位符合并）。 */
+/** 执行一轮模型调用：预处理、invoke、后处理（工具过滤、占位符合并）。agentConfig 由前端传入，用于角色与输入限制。 */
 export async function runModelRound(
   state: typeof MessagesAnnotation.State,
-  modelWithTools: ModelWithTools
+  modelWithTools: ModelWithTools,
+  agentConfig?: AgentPromptOverrides
 ): Promise<{ messages: AIMessage[] }> {
   const messages = state.messages;
   const messagesWithPaths = await replacePdfBase64WithPath(messages);
@@ -48,11 +49,24 @@ export async function runModelRound(
   }
 
   const normalized = normalizeMessages(messagesWithPaths);
-  const systemContent = getSystemPrompt();
-  const response = (await modelWithTools.invoke([
-    { role: "system", content: systemContent },
-    ...normalized,
-  ])) as AIMessage;
+  const systemContent = getSystemPrompt(agentConfig);
+
+  const FALLBACK_MESSAGE = "抱歉，本次未能生成回复，请重试或换一种问法。";
+  let response: AIMessage;
+  try {
+    response = (await modelWithTools.invoke([
+      { role: "system", content: systemContent },
+      ...normalized,
+    ])) as AIMessage;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[模型调用异常]", msg);
+    return { messages: [new AIMessage("服务暂时不可用，请稍后重试。")] };
+  }
+
+  if (!response || typeof response !== "object") {
+    return { messages: [new AIMessage(FALLBACK_MESSAGE)] };
+  }
 
   const hasToolCalls =
     Array.isArray((response as { tool_calls?: unknown[] }).tool_calls) &&
@@ -87,6 +101,15 @@ export async function runModelRound(
       : (response as AIMessage);
   } else {
     finalResponse = response as AIMessage;
+  }
+
+  const contentEmpty =
+    finalResponse.content === undefined ||
+    finalResponse.content === null ||
+    (typeof finalResponse.content === "string" && (finalResponse.content as string).trim() === "") ||
+    (Array.isArray(finalResponse.content) && finalResponse.content.length === 0);
+  if (contentEmpty && !(Array.isArray((finalResponse as AIMessage).tool_calls) && ((finalResponse as AIMessage).tool_calls?.length ?? 0) > 0)) {
+    finalResponse = new AIMessage({ content: FALLBACK_MESSAGE });
   }
 
   console.log("[助手输出]", finalResponse.content);

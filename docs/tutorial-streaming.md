@@ -54,9 +54,9 @@ node dist/examples/streaming-example.js
 
 ## 与主 Agent 的关系
 
-`npm run dev` 启动的服务在通过 **LangGraph API** 或 **SDK** 调用时，同样支持流式：  
-请求体里使用 `stream_mode: "messages"` 或 `"messages-tuple"` 等即可在客户端收到 SSE 流。  
-图本身的定义在 `src/agent.ts`，未改图结构即可享受流式输出。
+- **自定义 HTTP 主接口**：**POST /chat** 为流式主接口，请求体为 `message`, `role?`, `inputConditions?`, `thread_id?`，返回 **SSE 流**（`Content-Type: text/event-stream`），使用 `graph.streamEvents(..., { version: "v2", encoding: "text/event-stream" })`，前端可边收边渲染。一次性 JSON 回复请用 **POST /chat/sync**。
+- **LangGraph API / SDK**：`npm run dev` 启动后通过 LangGraph API 或 SDK 调用时，请求体里使用 `stream_mode: "messages"` 或 `"messages-tuple"` 等即可在客户端收到 SSE 流。  
+图定义在 `src/agent.ts`，未改图结构即可享受流式输出。
 
 ---
 

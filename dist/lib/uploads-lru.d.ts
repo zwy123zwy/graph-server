@@ -1,5 +1,6 @@
 /**
- * 清理 uploads 目录，保留最多 maxCount 个文件（按 mtime 升序，删除最旧的）。
- * 在写入新文件后调用，使总数不超过 maxCount。
+ * 清理 dir 下超出数量的最旧文件，只保留最多 maxCount 个（按 mtime 从新到旧）。
+ * @param dir - uploads 目录绝对或相对路径
+ * @param maxCount - 最多保留文件数，默认 5
  */
 export declare function pruneUploadsLru(dir: string, maxCount?: number): Promise<void>;
