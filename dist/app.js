@@ -7,7 +7,6 @@ import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { graph } from "./agent.js";
 import { HumanMessage } from "@langchain/core/messages";
-import { pruneUploadsLru } from "./lib/uploads-lru.js";
 export const app = new Hono();
 const UPLOAD_DIR = "uploads";
 /** 生成安全文件名，避免路径穿越 */
@@ -43,7 +42,7 @@ app.post("/upload-pdf", async (c) => {
         const fileName = `${Date.now()}-${safeFileName(name)}`;
         const savedPath = path.join(dir, fileName);
         await writeFile(savedPath, buffer);
-        await pruneUploadsLru(dir);
+        // 使用绝对路径，确保 read_pdf 工具能读到
         const absolutePath = path.resolve(savedPath);
         const userMessage = `【用户上传了 PDF 文件】路径：${absolutePath}。用户问题：${messageText}`;
         const result = await graph.invoke({

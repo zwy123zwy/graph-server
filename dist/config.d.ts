@@ -4,7 +4,7 @@
  */
 export declare const ollamaConfig: {
     /** 模型名称，如 qwen3-coder:480b-cloud */
-    readonly model: "qwen3-coder:480b-cloud";
+    readonly model: "qwen3-coder-next:cloud";
     /** Ollama 服务地址 */
     readonly baseUrl: "http://127.0.0.1:11434";
 };

@@ -6,7 +6,8 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { PDFParse } from "pdf-parse";
 import { readFile } from "node:fs/promises";
-const MAX_TEXT_LENGTH = 80_000;
+/** 单次返回最大字符数。过大会导致 checkpoint 序列化时 RangeError: Invalid string length，故限制在约 1.8 万字 */
+const MAX_TEXT_LENGTH = 18_000;
 /** 解析 data URL，返回 Buffer；非 data URL 返回 null */
 function parseDataUrl(dataUrl) {
     const trimmed = dataUrl.trim();

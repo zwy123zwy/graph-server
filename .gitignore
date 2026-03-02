@@ -4,3 +4,5 @@
 
 # 上传的 PDF 临时目录
 uploads/
+dist
+
