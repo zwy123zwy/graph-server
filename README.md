@@ -118,6 +118,11 @@ graph/
 **入门**：先看 [LangGraph 入门教程](docs/langgraph-getting-started.md)，运行 `npm run build && node dist/examples/hello-graph.js` 体验最小示例。  
 **更多教程**：流式、记忆、Graph API、Quickstart 对应见 [docs/langgraph-docs-index.md](docs/langgraph-docs-index.md) 中「本项目中对应内容」。
 
+## 流式输出与「两条助手消息」合并
+
+- **流式**：上面示例已使用 `client.runs.stream(..., { streamMode: "messages-tuple" })`，模型会以流式返回 token，前端可边收边渲染。
+- **两条变一条**：调用工具（如 read_pdf）时，第一轮会先输出占位句（如「正在读取 PDF，请稍候。」），第二轮再输出总结。后端已在 `callModel` 中把「占位 + 工具结果后的最终回复」合并成**同一条** AI 消息（同 id 替换），会话里只保留一条助手输出。
+
 ## 修改模型或 Ollama 地址
 
 在 `src/agent.ts` 中调整 `ChatOllama` 的 `model` 和 `baseUrl`：

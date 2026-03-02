@@ -1,3 +1,6 @@
 
 # LangGraph API
 .langgraph_api
+
+# 上传的 PDF 临时目录
+uploads/
